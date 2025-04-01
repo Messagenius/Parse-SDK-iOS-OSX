@@ -21,7 +21,7 @@ open class Client: NSObject {
     let applicationId: String
     let clientKey: String?
 
-    var socket: WebSocket?
+    open var socket: WebSocket?
     public var shouldPrintWebSocketLog = true
     public var shouldPrintWebSocketTrace = false
     public var userDisconnected = false
