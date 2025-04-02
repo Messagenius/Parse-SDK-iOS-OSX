@@ -27,7 +27,7 @@ public protocol SubscriptionHandling: AnyObject {
      - parameter query: The query that the event occurred on.
      - parameter client: The live query client which received this event.
      */
-    func didReceive(_ event: Event<PFObjectSubclass>, forQuery query: PFQuery<PFObjectSubclass>, inClient client: Client)
+    func didReceive(_ event: LiveQueryEvent<PFObjectSubclass>, forQuery query: PFQuery<PFObjectSubclass>, inClient client: Client)
 
     /**
      Tells the handler that an error has been received from the live query server.
@@ -68,7 +68,7 @@ public protocol SubscriptionHandling: AnyObject {
  - Updated: The object has been updated, and is still a part of the query.
  - Deleted: The object has been deleted, and is no longer included in the query.
  */
-public enum Event<T> where T: PFObject {
+public enum LiveQueryEvent<T> where T: PFObject {
     /// The object has been updated, and is now included in the query
     case entered(T)
 
@@ -84,7 +84,7 @@ public enum Event<T> where T: PFObject {
     /// The object has been deleted, and is no longer included in the query
     case deleted(T)
 
-    init<V>(event: Event<V>) {
+    init<V>(event: LiveQueryEvent<V>) {
         switch event {
         case .entered(let value as T): self = .entered(value)
         case .left(let value as T):    self = .left(value)
@@ -96,7 +96,7 @@ public enum Event<T> where T: PFObject {
     }
 }
 
-private func == <T>(lhs: Event<T>, rhs: Event<T>) -> Bool {
+private func == <T>(lhs: LiveQueryEvent<T>, rhs: LiveQueryEvent<T>) -> Bool {
     switch (lhs, rhs) {
     case (.entered(let obj1), .entered(let obj2)): return obj1 == obj2
     case (.left(let obj1), .left(let obj2)):       return obj1 == obj2
@@ -112,7 +112,7 @@ private func == <T>(lhs: Event<T>, rhs: Event<T>) -> Bool {
  */
 open class Subscription<T>: SubscriptionHandling where T: PFObject {
     fileprivate var errorHandlers: [(PFQuery<T>, Error) -> Void] = []
-    fileprivate var eventHandlers: [(PFQuery<T>, Event<T>) -> Void] = []
+    fileprivate var eventHandlers: [(PFQuery<T>, LiveQueryEvent<T>) -> Void] = []
     fileprivate var subscribeHandlers: [(PFQuery<T>) -> Void] = []
     fileprivate var unsubscribeHandlers: [(PFQuery<T>) -> Void] = []
 
@@ -141,7 +141,7 @@ open class Subscription<T>: SubscriptionHandling where T: PFObject {
 
      - returns: The same subscription, for easy chaining.
      */
-    @discardableResult open func handleEvent(_ handler: @escaping (PFQuery<T>, Event<T>) -> Void) -> Subscription {
+    @discardableResult open func handleEvent(_ handler: @escaping (PFQuery<T>, LiveQueryEvent<T>) -> Void) -> Subscription {
         eventHandlers.append(handler)
         return self
     }
@@ -176,7 +176,7 @@ open class Subscription<T>: SubscriptionHandling where T: PFObject {
     // ---------------
     public typealias PFObjectSubclass = T
 
-    open func didReceive(_ event: Event<PFObjectSubclass>, forQuery query: PFQuery<T>, inClient client: Client) {
+    open func didReceive(_ event: LiveQueryEvent<PFObjectSubclass>, forQuery query: PFQuery<T>, inClient client: Client) {
         eventHandlers.forEach { $0(query, event) }
     }
 
@@ -235,7 +235,7 @@ extension Subscription {
      - returns: The same subscription, for easy chaining
 
      */
-    @discardableResult public func handle(_ eventType: @escaping (T) -> Event<T>, _ handler: @escaping (PFQuery<T>, T) -> Void) -> Subscription {
+    @discardableResult public func handle(_ eventType: @escaping (T) -> LiveQueryEvent<T>, _ handler: @escaping (PFQuery<T>, T) -> Void) -> Subscription {
         return handleEvent { query, event in
             switch event {
             case .entered(let obj) where eventType(obj) == event: handler(query, obj)

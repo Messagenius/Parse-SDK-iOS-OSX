@@ -268,7 +268,7 @@ extension Client {
             objc_setAssociatedObject(handler, &HandlerConverter.associatedObjectKey, self, .OBJC_ASSOCIATION_RETAIN)
         }
 
-        fileprivate func didReceive(_ event: Event<T>, forQuery query: PFQuery<T>, inClient client: Client) {
+        fileprivate func didReceive(_ event: LiveQueryEvent<T>, forQuery query: PFQuery<T>, inClient client: Client) {
             handler?.didRecieveEvent?(query, event: PFLiveQueryEvent(event: event), client: client)
         }
 
@@ -338,7 +338,7 @@ extension Client {
 // emit the entire class altogether. Moving this to an extension for now solves the issue.
 
 extension PFLiveQueryEvent {
-    convenience init<T>(event: Event<T>) {
+    convenience init<T>(event: LiveQueryEvent<T>) {
         let results: (type: PFLiveQueryEventType, object: PFObject) = {
             switch event {
             case .entered(let object): return (.entered, object)

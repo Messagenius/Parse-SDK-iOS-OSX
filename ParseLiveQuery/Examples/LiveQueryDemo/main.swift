@@ -77,7 +77,7 @@ class ChatRoomManager {
     func subscribeToUpdates() {
         subscription = liveQueryClient
             .subscribe(messagesQuery)
-            .handle(Event.created) { _, message in
+            .handle(LiveQueryEvent.created) { _, message in
                 self.printMessage(message)
         }
     }

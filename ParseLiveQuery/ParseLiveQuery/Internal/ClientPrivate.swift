@@ -38,7 +38,7 @@ extension Client {
         // Technically, this should be a compiler no-op, as no witness tables should be used as 'PFObject' currently inherits from NSObject.
         // Should we make PFObject ever a native swift class without the backing Objective-C runtime however,
         // this becomes extremely important to have, and makes a ton more sense than just unsafeBitCast-ing everywhere.
-        var eventHandlerClosure: (Event<PFObject>, Client) -> Void
+        var eventHandlerClosure: (LiveQueryEvent<PFObject>, Client) -> Void
         var errorHandlerClosure: (Error, Client) -> Void
         var subscribeHandlerClosure: (Client) -> Void
         var unsubscribeHandlerClosure: (Client) -> Void
@@ -64,7 +64,7 @@ extension Client {
                     return
                 }
 
-                handler.didReceive(Event(event: event), forQuery: query, inClient: client)
+                handler.didReceive(LiveQueryEvent(event: event), forQuery: query, inClient: client)
             }
 
             errorHandlerClosure = { [weak self] error, client in
@@ -180,7 +180,7 @@ extension Client: WebSocketDelegate {
 // MARK: Operations
 // -------------------
 
-extension Event {
+extension LiveQueryEvent {
     init(serverResponse: ServerResponse, requestId: inout Client.RequestId) throws {
         switch serverResponse {
         case .enter(let reqId, let object):
@@ -267,7 +267,7 @@ extension Client {
             case .create, .delete, .enter, .leave, .update:
                 var requestId: RequestId = RequestId(value: 0)
                 guard
-                    let event: Event<PFObject> = try? Event(serverResponse: response, requestId: &requestId),
+                    let event: LiveQueryEvent<PFObject> = try? LiveQueryEvent(serverResponse: response, requestId: &requestId),
                     let record = self.subscriptionRecord(requestId)
                     else {
                         break
