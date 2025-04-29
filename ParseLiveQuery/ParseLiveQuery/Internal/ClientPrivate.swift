@@ -18,8 +18,18 @@ private func parseObject<T: PFObject>(_ objectDictionary: [String:AnyObject]) th
     guard let _ = objectDictionary["objectId"] as? String else {
         throw LiveQueryErrors.InvalidJSONError(json: objectDictionary, expectedKey: "objectId")
     }
+    
+    // *** workaround to fix parsing when afterLiveQueryEvent is active on server
+    let fixedObjectDictionary: [String: AnyObject]
+    if objectDictionary["__type"] == nil {
+        var tmp = objectDictionary
+        tmp["__type"] = "Object" as AnyObject
+        fixedObjectDictionary = tmp
+    } else {
+        fixedObjectDictionary = objectDictionary
+    }
 
-    guard let object =  PFDecoder.object().decode(objectDictionary) as? T else {
+    guard let object = PFDecoder.object().decode(fixedObjectDictionary) as? T else {
         throw LiveQueryErrors.InvalidJSONObject(json: objectDictionary, details: "cannot decode json into \(T.self)")
     }
 
