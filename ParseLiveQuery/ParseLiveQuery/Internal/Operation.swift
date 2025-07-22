@@ -14,6 +14,7 @@ enum ClientOperation {
     case subscribe(requestId: Client.RequestId, query: PFQuery<PFObject>, sessionToken: String?)
     case update(requestId: Client.RequestId, query: PFQuery<PFObject>)
     case unsubscribe(requestId: Client.RequestId)
+    case resync(Date)
 
     var JSONObjectRepresentation: [String : Any] {
         switch self {
@@ -36,6 +37,30 @@ enum ClientOperation {
 
         case .unsubscribe(let requestId):
             return [ "op": "unsubscribe", "requestId": requestId.value ]
+
+        case .resync(let date):
+            return [
+                "op": "resync",
+                "date": date.iso8601String
+            ]
+        }
+    }
+}
+
+fileprivate extension Date {
+    var iso8601String: String {
+        if #available(iOS 11.0, OSX 10.13, *) {
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            formatter.timeZone = TimeZone(secondsFromGMT: 0)
+            return formatter.string(from: self)
+        } else {
+            let formatter = DateFormatter()
+            formatter.calendar = Calendar(identifier: .iso8601)
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone(secondsFromGMT: 0)
+            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX"
+            return formatter.string(from: self)
         }
     }
 }

@@ -26,6 +26,7 @@ open class Client: NSObject {
     public var shouldPrintWebSocketTrace = false
     public var userDisconnected = false
     var isConnecting = false
+    private var resyncDate: Date?
 
     // This allows us to easily plug in another request ID generation scheme, or more easily change the request id type
     // if needed (technically this could be a string).
@@ -259,5 +260,16 @@ extension Client {
         socket.disconnect()
         self.socket = nil
         userDisconnected = true
+    }
+
+    /// Resync events from the given date. The client will reconnect and ask the server
+    /// to replay events occurring after this date for all current subscriptions.
+    /// - Parameter date: The date from which events should be replayed.
+    @objc(resyncFromDate:)
+    public func resync(from date: Date) {
+        queue.async {
+            self.resyncDate = date
+            self.reconnect()
+        }
     }
 }

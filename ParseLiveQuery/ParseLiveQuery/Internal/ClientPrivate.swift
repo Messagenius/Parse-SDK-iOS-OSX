@@ -251,11 +251,15 @@ extension Client {
             }
 
             switch response {
-            case .connected:
-                let sessionToken = PFUser.current()?.sessionToken
-                self.subscriptions.forEach {
-                    _ = self.sendOperationAsync(.subscribe(requestId: $0.requestId, query: $0.query, sessionToken: sessionToken))
-                }
+        case .connected:
+            if let date = self.resyncDate {
+                _ = self.sendOperationAsync(.resync(date))
+                self.resyncDate = nil
+            }
+            let sessionToken = PFUser.current()?.sessionToken
+            self.subscriptions.forEach {
+                _ = self.sendOperationAsync(.subscribe(requestId: $0.requestId, query: $0.query, sessionToken: sessionToken))
+            }
 
             case .redirect:
                 // TODO: Handle redirect.
