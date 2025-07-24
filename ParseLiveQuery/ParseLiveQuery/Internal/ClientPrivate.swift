@@ -258,7 +258,9 @@ extension Client {
             }
             if let date = self.resyncDate {
                 self.subscriptions.forEach {
-                    _ = self.sendOperationAsync(.resync(requestId: $0.requestId, date: date))
+                    _ = self.sendOperationAsync(
+                        .resync(requestId: $0.requestId, query: $0.query, date: date, sessionToken: sessionToken)
+                    )
                 }
                 self.resyncDate = nil
             }

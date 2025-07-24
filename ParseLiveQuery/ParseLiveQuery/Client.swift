@@ -270,8 +270,11 @@ extension Client {
         queue.async {
             self.resyncDate = date
             if let socket = self.socket, socket.isConnected {
+                let sessionToken = PFUser.current()?.sessionToken
                 self.subscriptions.forEach {
-                    _ = self.sendOperationAsync(.resync(requestId: $0.requestId, date: date))
+                    _ = self.sendOperationAsync(
+                        .resync(requestId: $0.requestId, query: $0.query, date: date, sessionToken: sessionToken)
+                    )
                 }
                 self.resyncDate = nil
             }
