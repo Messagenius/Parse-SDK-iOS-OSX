@@ -26,7 +26,7 @@ open class Client: NSObject {
     public var shouldPrintWebSocketTrace = false
     public var userDisconnected = false
     var isConnecting = false
-    private var resyncDate: Date?
+    var resyncDate: Date?
 
     // This allows us to easily plug in another request ID generation scheme, or more easily change the request id type
     // if needed (technically this could be a string).
