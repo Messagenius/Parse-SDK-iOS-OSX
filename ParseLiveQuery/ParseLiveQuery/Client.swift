@@ -262,14 +262,17 @@ extension Client {
         userDisconnected = true
     }
 
-    /// Resync events from the given date. The client will reconnect and ask the server
-    /// to replay events occurring after this date for all current subscriptions.
+    /// Resync events from the given date. If already connected the command is
+    /// sent immediately, otherwise it will be sent on the next reconnect.
     /// - Parameter date: The date from which events should be replayed.
     @objc(resyncFromDate:)
     public func resync(from date: Date) {
         queue.async {
             self.resyncDate = date
-            self.reconnect()
+            if let socket = self.socket, socket.isConnected {
+                _ = self.sendOperationAsync(.resync(date))
+                self.resyncDate = nil
+            }
         }
     }
 }
