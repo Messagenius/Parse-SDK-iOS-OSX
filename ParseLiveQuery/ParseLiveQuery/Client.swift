@@ -270,7 +270,9 @@ extension Client {
         queue.async {
             self.resyncDate = date
             if let socket = self.socket, socket.isConnected {
-                _ = self.sendOperationAsync(.resync(date))
+                self.subscriptions.forEach {
+                    _ = self.sendOperationAsync(.resync(requestId: $0.requestId, date: date))
+                }
                 self.resyncDate = nil
             }
         }

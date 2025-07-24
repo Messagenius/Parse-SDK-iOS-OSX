@@ -14,7 +14,7 @@ enum ClientOperation {
     case subscribe(requestId: Client.RequestId, query: PFQuery<PFObject>, sessionToken: String?)
     case update(requestId: Client.RequestId, query: PFQuery<PFObject>)
     case unsubscribe(requestId: Client.RequestId)
-    case resync(Date)
+    case resync(requestId: Client.RequestId, date: Date)
 
     var JSONObjectRepresentation: [String : Any] {
         switch self {
@@ -38,9 +38,10 @@ enum ClientOperation {
         case .unsubscribe(let requestId):
             return [ "op": "unsubscribe", "requestId": requestId.value ]
 
-        case .resync(let date):
+        case .resync(let requestId, let date):
             return [
                 "op": "resync",
+                "requestId": requestId.value,
                 "date": date.iso8601String
             ]
         }
