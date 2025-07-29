@@ -39,8 +39,7 @@ enum ClientOperation {
             return [ "op": "unsubscribe", "requestId": requestId.value ]
 
         case .resync(let requestId, let query, let date, let sessionToken):
-            var queryDict = Dictionary<String, AnyObject>(query: query)
-            queryDict.removeValue(forKey: "className")
+            let queryDict = Dictionary<String, AnyObject>(query: query)
             var result: [String: Any] = [
                 "op": "resync",
                 "requestId": requestId.value,

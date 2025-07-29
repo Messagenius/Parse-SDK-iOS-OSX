@@ -269,7 +269,7 @@ extension Client {
     public func resync(from date: Date) {
         queue.async {
             self.resyncDate = date
-            if let socket = self.socket, socket.isConnected {
+            if let socket = self.socket, !self.isConnecting {
                 let sessionToken = PFUser.current()?.sessionToken
                 self.subscriptions.forEach {
                     _ = self.sendOperationAsync(

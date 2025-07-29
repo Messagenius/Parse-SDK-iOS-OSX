@@ -140,6 +140,7 @@ extension Client: WebSocketDelegate {
                 reconnect()
             }
         case .text(let text):
+            print(">>> .text: \(text)")
             handleOperationAsync(text).continueWith { [weak self] task in
                 if let error = task.error, self?.shouldPrintWebSocketLog == true {
                     NSLog("ParseLiveQuery: Error processing message: \(error)")
