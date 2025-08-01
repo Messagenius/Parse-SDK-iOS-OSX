@@ -140,6 +140,7 @@ extension Client: WebSocketDelegate {
                 reconnect()
             }
         case .text(let text):
+            print(">>> .text: \(text)")
             handleOperationAsync(text).continueWith { [weak self] task in
                 if let error = task.error, self?.shouldPrintWebSocketLog == true {
                     NSLog("ParseLiveQuery: Error processing message: \(error)")
@@ -251,11 +252,19 @@ extension Client {
             }
 
             switch response {
-            case .connected:
-                let sessionToken = PFUser.current()?.sessionToken
+        case .connected:
+            let sessionToken = PFUser.current()?.sessionToken
+            self.subscriptions.forEach {
+                _ = self.sendOperationAsync(.subscribe(requestId: $0.requestId, query: $0.query, sessionToken: sessionToken))
+            }
+            if let date = self.resyncDate {
                 self.subscriptions.forEach {
-                    _ = self.sendOperationAsync(.subscribe(requestId: $0.requestId, query: $0.query, sessionToken: sessionToken))
+                    _ = self.sendOperationAsync(
+                        .resync(requestId: $0.requestId, query: $0.query, date: date, sessionToken: sessionToken)
+                    )
                 }
+                self.resyncDate = nil
+            }
 
             case .redirect:
                 // TODO: Handle redirect.

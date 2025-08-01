@@ -14,6 +14,7 @@ enum ClientOperation {
     case subscribe(requestId: Client.RequestId, query: PFQuery<PFObject>, sessionToken: String?)
     case update(requestId: Client.RequestId, query: PFQuery<PFObject>)
     case unsubscribe(requestId: Client.RequestId)
+    case resync(requestId: Client.RequestId, query: PFQuery<PFObject>, date: Date, sessionToken: String?)
 
     var JSONObjectRepresentation: [String : Any] {
         switch self {
@@ -36,6 +37,37 @@ enum ClientOperation {
 
         case .unsubscribe(let requestId):
             return [ "op": "unsubscribe", "requestId": requestId.value ]
+
+        case .resync(let requestId, let query, let date, let sessionToken):
+            let queryDict = Dictionary<String, AnyObject>(query: query)
+            var result: [String: Any] = [
+                "op": "resync",
+                "requestId": requestId.value,
+                "query": queryDict,
+                "date": date.iso8601String
+            ]
+            if let sessionToken = sessionToken {
+                result["sessionToken"] = sessionToken
+            }
+            return result
+        }
+    }
+}
+
+fileprivate extension Date {
+    var iso8601String: String {
+        if #available(iOS 11.0, OSX 10.13, *) {
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            formatter.timeZone = TimeZone(secondsFromGMT: 0)
+            return formatter.string(from: self)
+        } else {
+            let formatter = DateFormatter()
+            formatter.calendar = Calendar(identifier: .iso8601)
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone(secondsFromGMT: 0)
+            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX"
+            return formatter.string(from: self)
         }
     }
 }
